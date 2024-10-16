@@ -1,1 +1,148 @@
-kk
+
+
+Yes, you can still integrate Okta with Spring 5.0.16. However, the okta-spring-boot-starter library is typically used with more recent versions of Spring Boot, and if you are using plain Spring 5 (not Spring Boot), the integration process will require a bit more manual configuration, especially for OAuth 2.0 login.
+
+Steps to Integrate Okta with Spring 5.0.16
+Add Okta Dependencies
+
+You'll need the following dependencies for OAuth 2.0 integration, including Spring Security OAuth 2.0 support. Add them to your pom.xml:
+
+xml
+Copy code
+<!-- Okta Spring Security Starter -->
+<dependency>
+    <groupId>com.okta.spring</groupId>
+    <artifactId>okta-spring-security-oauth2</artifactId>
+    <version>3.0.1</version>
+</dependency>
+
+<!-- Spring Security OAuth2 Client -->
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-oauth2-client</artifactId>
+    <version>5.0.16.RELEASE</version>
+</dependency>
+
+<!-- Spring Security Core -->
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-core</artifactId>
+    <version>5.0.16.RELEASE</version>
+</dependency>
+
+<!-- Spring Security Web -->
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-web</artifactId>
+    <version>5.0.16.RELEASE</version>
+</dependency>
+These dependencies bring OAuth 2.0 login functionality, even with Spring 5.0.16.
+
+Configure Okta in application.properties
+
+Add Okta OAuth 2.0 credentials to your application.properties:
+
+properties
+Copy code
+okta.oauth2.issuer=https://{yourOktaDomain}/oauth2/default
+okta.oauth2.client-id={yourClientId}
+okta.oauth2.client-secret={yourClientSecret}
+
+# Optional, the default redirect URI:
+spring.security.oauth2.client.registration.okta.redirect-uri=http://localhost:8080/login/oauth2/code/okta
+Replace {yourOktaDomain}, {yourClientId}, and {yourClientSecret} with your actual Okta details from the Okta developer console.
+
+Configure Spring Security
+
+Since you're using Spring 5.0.16, you need to manually configure the OAuth 2.0 login flow. Here is an example of how to configure Spring Security:
+
+java
+Copy code
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+            .antMatchers("/", "/public/**").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .oauth2Login()  // Enables OAuth2 login
+                .defaultSuccessUrl("/home", true);  // Redirect after successful login
+    }
+}
+This configuration protects all endpoints except /public/** and redirects users to the Okta login page when trying to access secure endpoints.
+Manual OAuth 2.0 Configuration in Spring 5
+
+Since you’re using Spring 5, you might need to manually configure the client registration and provider details. Add the following configuration in application.properties:
+
+properties
+Copy code
+spring.security.oauth2.client.registration.okta.client-id={yourClientId}
+spring.security.oauth2.client.registration.okta.client-secret={yourClientSecret}
+spring.security.oauth2.client.registration.okta.scope=openid, profile, email
+spring.security.oauth2.client.registration.okta.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.okta.redirect-uri=http://localhost:8080/login/oauth2/code/okta
+spring.security.oauth2.client.registration.okta.client-authentication-method=client_secret_basic
+
+spring.security.oauth2.client.provider.okta.issuer-uri=https://{yourOktaDomain}/oauth2/default
+spring.security.oauth2.client.provider.okta.authorization-uri=https://{yourOktaDomain}/oauth2/default/v1/authorize
+spring.security.oauth2.client.provider.okta.token-uri=https://{yourOktaDomain}/oauth2/default/v1/token
+spring.security.oauth2.client.provider.okta.user-info-uri=https://{yourOktaDomain}/oauth2/default/v1/userinfo
+spring.security.oauth2.client.provider.okta.jwk-set-uri=https://{yourOktaDomain}/oauth2/default/v1/keys
+This configuration sets up Okta as the OAuth 2.0 provider, and Spring Security will use these details to perform OAuth 2.0 authentication and authorization.
+
+Create an Okta OIDC Application
+
+You need to configure an Okta application in the Okta Developer Console:
+
+Go to Applications > Add Application > Web.
+Set up the redirect URI to http://localhost:8080/login/oauth2/code/okta.
+Copy the Client ID and Client Secret to your application.properties.
+Testing the Application
+
+Once everything is configured, run your Spring application. When a user accesses a protected endpoint, they will be redirected to the Okta login page. After successful login, they’ll be redirected back to your application.
+
+Example Flow:
+The user accesses a protected resource.
+They are redirected to Okta’s login page.
+After logging in, they are redirected back to your app.
+The OidcUser (Okta's OAuth 2.0 user) will be available in your controllers or security context.
+Retrieving User Details:
+In a Spring controller, you can access the authenticated user’s details (like email and name) via the Principal or OidcUser:
+
+java
+Copy code
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+
+    @GetMapping("/user")
+    public String getUserInfo(@AuthenticationPrincipal OidcUser oidcUser) {
+        String email = oidcUser.getEmail();
+        String fullName = oidcUser.getFullName();
+        return "User: " + fullName + ", Email: " + email;
+    }
+}
+This retrieves the user's full name and email address from Okta after authentication.
+
+Summary
+Although you're using an older version of Spring, you can integrate Okta using Spring Security's OAuth 2.0 support. The key points are:
+
+Add necessary dependencies (okta-spring-security-oauth2 and Spring Security OAuth2 Client).
+Manually configure Okta client details and OAuth2 flow in application.properties.
+Use Spring Security’s oauth2Login() to handle the OAuth2 login flow.
+Let me know if you have any more questions or need further clarification!
+
+-----------------------------------------
