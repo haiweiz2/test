@@ -1,5 +1,120 @@
 
 
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/", "/public/**").permitAll() // Public paths
+                .anyRequest().authenticated() // Protect all other paths
+            .and()
+            .oauth2Login() // Enable OAuth2 login
+                .loginPage("/login") // Optional: custom login page
+                .defaultSuccessUrl("/home", true); // Redirect after login
+    }
+
+    @Bean
+    public ClientRegistrationRepository clientRegistrationRepository() {
+        return new InMemoryClientRegistrationRepository(oktaClientRegistration());
+    }
+
+    @Bean
+    public ClientRegistration oktaClientRegistration() {
+        return ClientRegistration.withRegistrationId("okta")
+            .clientId("{yourClientId}")
+            .clientSecret("{yourClientSecret}")
+            .scope("openid", "profile", "email")
+            .authorizationUri("https://{yourOktaDomain}/oauth2/default/v1/authorize")
+            .tokenUri("https://{yourOktaDomain}/oauth2/default/v1/token")
+            .jwkSetUri("https://{yourOktaDomain}/oauth2/default/v1/keys")
+            .userInfoUri("https://{yourOktaDomain}/oauth2/default/v1/userinfo")
+            .redirectUri("{yourRedirectUri}")
+            .issuerUri("https://{yourOktaDomain}/oauth2/default")
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .build();
+    }
+
+    @Bean
+    public OAuth2AuthorizedClientService authorizedClientService(ClientRegistrationRepository clientRegistrationRepository) {
+        return new DefaultOAuth2AuthorizedClientService(clientRegistrationRepository);
+    }
+}
+
+
+------
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+            .antMatchers("/", "/public/**").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .oauth2Login()
+                .defaultSuccessUrl("/home", true);
+
+        return http.build();
+    }
+}
+------
+
+
+
+
+
+
+
+
+
+
+
+# Okta OAuth2 Configuration
+spring.security.oauth2.client.registration.okta.client-id={yourClientId}
+spring.security.oauth2.client.registration.okta.client-secret={yourClientSecret}
+spring.security.oauth2.client.registration.okta.scope=openid, profile, email
+spring.security.oauth2.client.registration.okta.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.okta.redirect-uri=http://localhost:8080/login/oauth2/code/okta
+spring.security.oauth2.client.registration.okta.client-authentication-method=client_secret_basic
+
+# Okta Provider Information
+spring.security.oauth2.client.provider.okta.issuer-uri=https://{yourOktaDomain}/oauth2/default
+spring.security.oauth2.client.provider.okta.authorization-uri=https://{yourOktaDomain}/oauth2/default/v1/authorize
+spring.security.oauth2.client.provider.okta.token-uri=https://{yourOktaDomain}/oauth2/default/v1/token
+spring.security.oauth2.client.provider.okta.user-info-uri=https://{yourOktaDomain}/oauth2/default/v1/userinfo
+spring.security.oauth2.client.provider.okta.jwk-set-uri=https://{yourOktaDomain}/oauth2/default/v1/keys
+
+
+
+
+
+
+
+=================
 Yes, you can still integrate Okta with Spring 5.0.16. However, the okta-spring-boot-starter library is typically used with more recent versions of Spring Boot, and if you are using plain Spring 5 (not Spring Boot), the integration process will require a bit more manual configuration, especially for OAuth 2.0 login.
 
 Steps to Integrate Okta with Spring 5.0.16
