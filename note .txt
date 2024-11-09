@@ -1,4 +1,32 @@
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .anyRequest().authenticated()
+            .and()
+                .oauth2Login()
+                .tokenEndpoint()
+                    .accessTokenResponseClient(accessTokenResponseClient());
+    }
+
     @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient() {
+        DefaultOAuth2AccessTokenResponseClient tokenResponseClient = new DefaultOAuth2AccessTokenResponseClient();
+        tokenResponseClient.setRestTemplate(restTemplate);  // Use the custom RestTemplate here
+        return tokenResponseClient;
+    }
+}
+
+
+
+
+@Bean
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(30000);  // Set connection timeout to 30 seconds
