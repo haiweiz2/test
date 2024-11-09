@@ -1,4 +1,10 @@
-
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(30000);  // Set connection timeout to 30 seconds
+        factory.setReadTimeout(30000);     // Set read timeout to 30 seconds
+        return new RestTemplate(factory);
+    }
 
    @Autowired
     private WebClient.Builder webClientBuilder;
