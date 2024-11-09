@@ -1,3 +1,19 @@
+
+ @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> client() {
+        return new DefaultOAuth2AccessTokenResponseClient() {
+            @Override
+            public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
+                OAuth2AccessTokenResponse response = super.getTokenResponse(authorizationCodeGrantRequest);
+                // Here, you can apply additional logic to modify the response if needed
+                return response;
+            }
+        };
+    }
+
+
+
+
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
