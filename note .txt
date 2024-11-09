@@ -1,4 +1,43 @@
 
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/welcome").permitAll() // Allow access to public pages
+                .anyRequest().authenticated() // Protect other pages
+            .and()
+                .oauth2Login() // Enable OAuth2 login
+                .tokenEndpoint()
+                    .accessTokenResponseClient(new CustomOAuth2AccessTokenResponseClient(restTemplate))
+            .and()
+            .defaultSuccessUrl("/main", true); // Redirect to main page after login
+    }
+}
+
+private static class CustomOAuth2AccessTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+
+    private final RestTemplate restTemplate;
+
+    public CustomOAuth2AccessTokenResponseClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    @Override
+    public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest request) {
+        // Custom implementation for token exchange using RestTemplate with timeout
+        return restTemplate.exchange(request.getTokenUri(), HttpMethod.POST, null, OAuth2AccessTokenResponse.class).getBody();
+    }
+}
+
+
+
+
+
+
+
  @Bean
     public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> client() {
         return new DefaultOAuth2AccessTokenResponseClient() {
