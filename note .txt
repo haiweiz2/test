@@ -1,4 +1,40 @@
 
+  // Custom OAuth2 Access Token Response Client
+    private static class CustomOAuth2AccessTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+
+        private final RestTemplate restTemplate;
+
+        public CustomOAuth2AccessTokenResponseClient(RestTemplate restTemplate) {
+            this.restTemplate = restTemplate;
+        }
+
+        @Override
+        public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest request) {
+            // Manually specify the token URI for the authorization server
+            String tokenUri = "https://{okta_domain}/oauth2/default/v1/token"; // Example token URI
+
+            // Prepare the token request (You can customize the request body and parameters)
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("client_id", "your-client-id");
+            params.add("client_secret", "your-client-secret");
+            params.add("code", request.getAuthorizationExchange().getAuthorizationCode());
+            params.add("redirect_uri", request.getAuthorizationExchange().getRedirectUri());
+            params.add("grant_type", "authorization_code");
+
+            // Exchange the code for an access token
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, new HttpHeaders());
+            ResponseEntity<OAuth2AccessTokenResponse> responseEntity = restTemplate.exchange(
+                    tokenUri, HttpMethod.POST, entity, OAuth2AccessTokenResponse.class);
+
+            return responseEntity.getBody(); // Return the access token response
+        }
+    }
+
+
+
+
+
+
     @Autowired
     private RestTemplate restTemplate;
 
