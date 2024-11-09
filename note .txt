@@ -1,4 +1,58 @@
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.client.config.RequestConfig;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class OAuth2Config {
+
     @Bean
+    public RestTemplate restTemplate() {
+        // Set up connection pooling
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(200);  // Max total connections
+        connectionManager.setDefaultMaxPerRoute(20);  // Max connections per route
+
+        // Set the timeout values
+        CloseableHttpClient httpClient = HttpClients.custom()
+            .setDefaultRequestConfig(
+                RequestConfig.custom()
+                    .setConnectTimeout(5000)  // Connection timeout in milliseconds
+                    .setSocketTimeout(10000)  // Read timeout in milliseconds
+                    .build()
+            )
+            .setConnectionManager(connectionManager)
+            .build();
+
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        return new RestTemplate(factory);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
         return new InMemoryClientRegistrationRepository(oktaClientRegistration());
     }
