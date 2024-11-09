@@ -1,4 +1,33 @@
 
+
+   @Autowired
+    private WebClient.Builder webClientBuilder;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .anyRequest().authenticated()
+            .and()
+                .oauth2Login()
+                    .clientRegistrationRepository(clientRegistrationRepository())
+                    .authorizedClientService(authorizedClientService())
+                    .tokenEndpoint()
+                        .accessTokenResponseClient(this.accessTokenResponseClient());
+    }
+
+    private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient() {
+        OAuth2AuthorizationCodeGrantRequestEntityConverter converter =
+                new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        return new DefaultOAuth2AccessTokenResponseClient(converter);
+    }
+
+
+
+
+
+
+
    @Bean
     public WebClient.Builder webClientBuilder() {
         return WebClient.builder()
