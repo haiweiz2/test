@@ -1,4 +1,56 @@
-                .accessTokenResponseClient(new CustomOAuth2AccessTokenResponseClient()); // Custom client for PKCE
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+public class CustomOAuth2AccessTokenResponseClient implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+    
+    private final DefaultAuthorizationCodeTokenResponseClient defaultClient = new DefaultAuthorizationCodeTokenResponseClient();
+
+    @Override
+    public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationGrantRequest) {
+        // Create a new token request with additional PKCE parameters
+        MultiValueMap<String, String> formParameters = new LinkedMultiValueMap<>(authorizationGrantRequest.getAuthorizationExchange()
+                .getAuthorizationResponse()
+                .getAdditionalParameters());
+
+        // Add PKCE parameters
+        formParameters.add("code_verifier", "your_generated_code_verifier");
+        formParameters.add("code_challenge_method", "S256"); // or "plain" if your server doesn't support S256
+
+        // Set the updated parameters back to the request
+        OAuth2AuthorizationCodeGrantRequest updatedRequest = new OAuth2AuthorizationCodeGrantRequest(
+                authorizationGrantRequest.getClientRegistration(),
+                authorizationGrantRequest.getAuthorizationExchange(),
+                formParameters
+        );
+
+        return defaultClient.getTokenResponse(updatedRequest);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.accessTokenResponseClient(new CustomOAuth2AccessTokenResponseClient()); // Custom client for PKCE
 
 
 
