@@ -1,3 +1,69 @@
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.RequestEntity;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
+import org.springframework.security.oauth2.core.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+public class CustomOAuth2AccessTokenResponseClient 
+    implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter = 
+        new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+
+    @Override
+    public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationGrantRequest) {
+        RequestEntity<?> requestEntity = requestEntityConverter.convert(authorizationGrantRequest);
+
+        // Extract the original form parameters
+        MultiValueMap<String, String> formParameters = new LinkedMultiValueMap<>();
+        formParameters.putAll((MultiValueMap<String, String>) requestEntity.getBody());
+
+        // Add PKCE parameters
+        formParameters.add("code_challenge", "<your_code_challenge>");
+        formParameters.add("code_challenge_method", "S256");
+
+        // Rebuild the request entity with updated form parameters
+        RequestEntity<MultiValueMap<String, String>> updatedRequestEntity = new RequestEntity<>(
+            formParameters,
+            requestEntity.getHeaders(),
+            requestEntity.getMethod(),
+            requestEntity.getUrl()
+        );
+
+        // Execute the request with the modified entity
+        return restTemplate.exchange(
+            updatedRequestEntity,
+            OAuth2AccessTokenResponse.class
+        ).getBody();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
