@@ -1,3 +1,39 @@
+                .accessTokenResponseClient(new CustomOAuth2AccessTokenResponseClient()); // Custom client for PKCE
+
+
+
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.RequestEntity;
+import org.springframework.security.oauth2.core.OAuth2AccessTokenResponse;
+
+public class CustomOAuth2AccessTokenResponseClient 
+    implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Override
+    public OAuth2AccessTokenResponse getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationGrantRequest) {
+        OAuth2AuthorizationCodeGrantRequestEntityConverter converter = 
+            new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        RequestEntity<?> requestEntity = converter.convert(authorizationGrantRequest);
+
+        // Add code_challenge_method and code_challenge to the request
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(requestEntity.getUrl())
+            .queryParam("code_challenge", "<your_code_challenge>")
+            .queryParam("code_challenge_method", "S256"); // Use S256 as the PKCE method
+
+        // Send the request with the added PKCE parameters
+        return restTemplate.exchange(uriBuilder.toUriString(), 
+            requestEntity.getMethod(), requestEntity, OAuth2AccessTokenResponse.class).getBody();
+    }
+}
+
+
+
 
 
 @Override
