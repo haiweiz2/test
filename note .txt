@@ -1,3 +1,16 @@
+
+   public String getUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return authentication.getName(); // Get the username from the authentication object
+        }
+        return null; // Handle the case where the user is not authenticated
+    }
+
+
+
+
+
 DefaultAuthorizationCodeTokenResponseClient
 <dependency>
     <groupId>com.fasterxml.jackson.core</groupId>
