@@ -1,4 +1,14 @@
 
+new RestTemplate(Arrays.asList(
+            new FormHttpMessageConverter(),  // For handling form-encoded responses
+            new MappingJackson2HttpMessageConverter() // For handling JSON responses
+        ));
+
+
+
+
+
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
