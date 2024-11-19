@@ -1,4 +1,28 @@
 
+import javax.servlet.http.HttpServletRequest;
+
+public class UrlUtil {
+
+    public static String getBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme(); // http or https
+        String serverName = request.getServerName(); // e.g., localhost or example.com
+        int serverPort = request.getServerPort(); // e.g., 8080
+        String contextPath = request.getContextPath(); // e.g., /myApp
+
+        // Handle default ports for HTTP/HTTPS
+        String port = (serverPort == 80 || serverPort == 443) ? "" : ":" + serverPort;
+
+        return scheme + "://" + serverName + port + contextPath;
+    }
+}
+
+
+
+
+
+
+
+
    public String getUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
