@@ -1,4 +1,9 @@
 
+(HttpServletRequest request) {
+    String baseUrl = UrlUtil.getBaseUrl(request);
+
+
+
 import javax.servlet.http.HttpServletRequest;
 
 public class UrlUtil {
