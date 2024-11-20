@@ -1,4 +1,12 @@
 
+     if (authentication instanceof OAuth2AuthenticationToken) {
+            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+            Map<String, Object> attributes = oauthToken.getPrincipal().getAttributes();
+            return (String) attributes.get("preferred_username");
+        }
+
+
+
 (HttpServletRequest request) {
     String baseUrl = UrlUtil.getBaseUrl(request);
 
