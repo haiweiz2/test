@@ -1,4 +1,17 @@
 
+                String oktaLogoutUrl = "https://{yourOktaDomain}/oauth2/default/v1/logout" +
+                        "?id_token_hint=" + ((OidcUser) authentication.getPrincipal()).getIdToken().getTokenValue() +
+                        "&post_logout_redirect_uri=" + "{yourAppRedirectUri}";
+                response.sendRedirect(oktaLogoutUrl);
+
+
+
+
+
+
+
+
+
      if (authentication instanceof OAuth2AuthenticationToken) {
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             Map<String, Object> attributes = oauthToken.getPrincipal().getAttributes();
