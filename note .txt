@@ -1,4 +1,65 @@
-        <webResources>
+
+
+2. Setting Proxy Using External Configuration (e.g., application.properties)
+If you want to externalize the proxy settings, you can define them in your application.properties or application.yml file and load them dynamically.
+
+In application.properties:
+properties
+Copy code
+proxy.http.host=qqq.com
+proxy.http.port=8080
+proxy.https.host=qqq.com
+proxy.https.port=8080
+proxy.http.nonProxyHosts=localhost
+In Spring Configuration:
+java
+Copy code
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+
+@Configuration
+public class ProxyConfiguration {
+
+    @Value("${proxy.http.host}")
+    private String httpProxyHost;
+
+    @Value("${proxy.http.port}")
+    private String httpProxyPort;
+
+    @Value("${proxy.https.host}")
+    private String httpsProxyHost;
+
+    @Value("${proxy.https.port}")
+    private String httpsProxyPort;
+
+    @Value("${proxy.http.nonProxyHosts}")
+    private String nonProxyHosts;
+
+    @PostConstruct
+    public void configureProxySettings() {
+        System.setProperty("http.proxyHost", httpProxyHost);
+        System.setProperty("http.proxyPort", httpProxyPort);
+        System.setProperty("https.proxyHost", httpsProxyHost);
+        System.setProperty("https.proxyPort", httpsProxyPort);
+        System.setProperty("http.nonProxyHosts", nonProxyHosts);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+<webResources>
             <resource>
                 <directory>src/main/resources</directory>
                 <targetPath>WEB-INF/classes</targetPath>
