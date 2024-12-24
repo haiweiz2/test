@@ -1,3 +1,35 @@
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(Environment environment) {
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+
+        String env = environment.getProperty("env", "default");
+        String propertiesFileName = "application-" + env + ".properties";
+
+        // Load application.properties first
+        configurer.setLocation(new org.springframework.core.io.ClassPathResource("application.properties"));
+
+        // Dynamically load environment-specific properties
+        configurer.setLocations(
+            new org.springframework.core.io.ClassPathResource(propertiesFileName)
+        );
+
+        return configurer;
+    }
+}
+
+
+
+
+
 
 
 2. Setting Proxy Using External Configuration (e.g., application.properties)
