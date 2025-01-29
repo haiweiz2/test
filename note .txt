@@ -1,3 +1,65 @@
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeRequests(auth -> auth
+            .antMatchers("/").permitAll()
+            .anyRequest().authenticated()
+        )
+        .oauth2Login(oauth2 -> oauth2
+            .authorizationEndpoint(authEndpoint ->
+                authEndpoint.authorizationRequestResolver(
+                    customAuthorizationRequestResolver(clientRegistrationRepository())
+                )
+            )
+        )
+        .defaultSuccessUrl("/home", true)
+        .failureUrl("/login?error=true");
+
+    return http.build();
+}
+
+@Bean
+public OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
+    DefaultOAuth2AuthorizationRequestResolver defaultResolver =
+            new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
+
+    return request -> {
+        OAuth2AuthorizationRequest authorizationRequest = defaultResolver.resolve(request);
+        if (authorizationRequest == null) {
+            return null;
+        }
+
+        // Modify redirectUri to an absolute URL
+        return OAuth2AuthorizationRequest.from(authorizationRequest)
+                .redirectUri("https://webon.com/logbak") // Set absolute redirect URI here
+                .build();
+    };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Bean;
