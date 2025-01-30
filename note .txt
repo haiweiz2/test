@@ -1,4 +1,15 @@
 
+curl -H "X-Forwarded-Proto: https" \
+     -H "X-Forwarded-Host: example.com" \
+     -H "X-Forwarded-Port: 443" \
+     -H "X-Forwarded-For: 203.0.113.1" \
+     http://localhost:8080/test
+
+
+
+
+
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.ForwardedHeaderFilter;
