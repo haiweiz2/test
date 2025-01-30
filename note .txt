@@ -1,4 +1,21 @@
 
+@RestController
+public class TestController {
+
+    @GetMapping("/test")
+    public String test(HttpServletRequest request) {
+        return String.format(
+            "Server: %s:%s, Secure: %s, URL: %s",
+            request.getServerName(),
+            request.getServerPort(),
+            request.isSecure(),
+            request.getRequestURL()
+        );
+    }
+}
+
+
+
 curl -H "X-Forwarded-Proto: https" \
      -H "X-Forwarded-Host: example.com" \
      -H "X-Forwarded-Port: 443" \
