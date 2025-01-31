@@ -1,5 +1,5 @@
-
-
+The ForwardedHeaderFilter ensures that X-Forwarded-Proto is respected, so Spring Security generates URLs with HTTPS.
+The requiresSecure() method forces all requests to use HTTPS.
 
 <filter>
     <filter-name>forwardedHeaderFilter</filter-name>
