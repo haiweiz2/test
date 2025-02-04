@@ -1,3 +1,20 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- Configure RemoteIpValve to handle X-Forwarded headers -->
+    <Valve className="org.apache.catalina.valves.RemoteIpValve"
+           remoteIpHeader="x-forwarded-for"
+           protocolHeader="x-forwarded-proto"
+           protocolHeaderHttpsValue="https" />
+</Context>
+
+
+
+
+
+
+
+
 The ForwardedHeaderFilter ensures that X-Forwarded-Proto is respected, so Spring Security generates URLs with HTTPS.
 The requiresSecure() method forces all requests to use HTTPS.
 
