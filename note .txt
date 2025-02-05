@@ -1,3 +1,108 @@
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+
+public class HttpsOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
+
+    private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
+
+    /**
+     * @param clientRegistrationRepository the repository holding your client registrations (e.g., Okta)
+     * @param authorizationRequestBaseUri  the base URI for authorization requests (typically "/oauth2/authorization")
+     */
+    public HttpsOAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository, String authorizationRequestBaseUri) {
+        this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, authorizationRequestBaseUri);
+    }
+
+    @Override
+    public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+        OAuth2AuthorizationRequest req = defaultResolver.resolve(request);
+        return customizeRedirectUri(req);
+    }
+
+    @Override
+    public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
+        OAuth2AuthorizationRequest req = defaultResolver.resolve(request, clientRegistrationId);
+        return customizeRedirectUri(req);
+    }
+
+    /**
+     * Modify the redirect URI in the OAuth2AuthorizationRequest to force HTTPS.
+     */
+    private OAuth2AuthorizationRequest customizeRedirectUri(OAuth2AuthorizationRequest request) {
+        if (request == null) {
+            return null;
+        }
+        String redirectUri = request.getRedirectUri();
+        if (redirectUri != null && redirectUri.startsWith("http://")) {
+            redirectUri = "https://" + redirectUri.substring("http://".length());
+        }
+        return OAuth2AuthorizationRequest.from(request)
+                .redirectUri(redirectUri)
+                .build();
+    }
+}
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    // This repository is where you define your OAuth2 client details (e.g., Okta)
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // Create an instance of our custom resolver.
+        // The second parameter should match your authorization base URI (commonly "/oauth2/authorization")
+        HttpsOAuth2AuthorizationRequestResolver customResolver = new HttpsOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository, "/oauth2/authorization");
+
+        http
+            .authorizeRequests()
+                // Adjust your public endpoints as needed
+                .antMatchers("/", "/public/**", "/myweb/my").permitAll()
+                .anyRequest().authenticated()
+                .and()
+            .oauth2Login()
+                .authorizationEndpoint()
+                    // Register the custom resolver to force HTTPS in the redirect URI
+                    .authorizationRequestResolver(customResolver)
+                    .and()
+                .redirectionEndpoint()
+                    // Ensure this base URI matches the callback URL you have registered with Okta.
+                    .baseUri("/callback");
+
+        return http.build();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
