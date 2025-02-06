@@ -1,7 +1,101 @@
+@Configuration
+public class SecurityConfig {
+
+    @Value("${app.base-url}")
+    private String baseUrl;  // should be like "myweb"
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/", "/public/**", "/my").permitAll()
+                .anyRequest().authenticated()
+            .and()
+            .oauth2Login()
+                .authorizationEndpoint()
+                    .authorizationRequestResolver(new HttpsAuthorizationRequestResolver(
+                        clientRegistrationRepository(),
+                        "/oauth2/authorization",
+                        baseUrl
+                    ))
+                .and()
+                .redirectionEndpoint()
+                    .baseUri("/my/callback");
+
+        return http.build();
+    }
+}
+
+public class HttpsAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
+    private final OAuth2AuthorizationRequestResolver defaultResolver;
+    private final String baseUrl;
+
+    public HttpsAuthorizationRequestResolver(
+            ClientRegistrationRepository repo,
+            String authorizationRequestBaseUri,
+            String baseUrl) {
+        this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
+                repo, authorizationRequestBaseUri);
+        this.baseUrl = baseUrl;
+    }
+
+    @Override
+    public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+        OAuth2AuthorizationRequest authRequest = defaultResolver.resolve(request);
+        return authRequest != null ? enforceHttps(authRequest) : null;
+    }
+
+    @Override
+    public OAuth2AuthorizationRequest resolve(
+            HttpServletRequest request, String clientRegistrationId) {
+        OAuth2AuthorizationRequest authRequest = defaultResolver.resolve(
+                request, clientRegistrationId);
+        return authRequest != null ? enforceHttps(authRequest) : null;
+    }
+
+    private OAuth2AuthorizationRequest enforceHttps(OAuth2AuthorizationRequest request) {
+        // Force HTTPS for redirect_uri (callback endpoint)
+        String redirectUri = "https://" + baseUrl + "/my/callback";
+
+        // Get the original authorization endpoint URL
+        String authorizationUri = request.getAuthorizationUri();
+
+        Map<String, Object> additionalParams = new HashMap<>(request.getAdditionalParameters());
+        // Add any state or other parameters you want to preserve
+        if (request.getState() != null) {
+            additionalParams.put("state", request.getState());
+        }
+
+        return OAuth2AuthorizationRequest.from(request)
+                .authorizationUri(authorizationUri)  // Keep original Okta authorization endpoint
+                .redirectUri(redirectUri)            // Force HTTPS for callback
+                .additionalParameters(additionalParams)
+                .build();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io
+
+
+.IOException;
 
 public class HttpsEnforcementFilter implements Filter {
     private final int httpsPort;
