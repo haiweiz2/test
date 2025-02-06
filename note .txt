@@ -1,3 +1,54 @@
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.IOException;
+
+public class SameSiteCookieFilter implements Filter {
+
+    private final String sameSitePolicy;
+
+    public SameSiteCookieFilter(String sameSitePolicy) {
+        // e.g., "Strict", "Lax", or "None"
+        this.sameSitePolicy = sameSitePolicy;
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(httpResponse) {
+            @Override
+            public void addHeader(String name, String value) {
+                if ("Set-Cookie".equalsIgnoreCase(name)) {
+                    // Check if the SameSite attribute is already present
+                    if (!value.toLowerCase().contains("samesite")) {
+                        value = value + "; SameSite=" + sameSitePolicy;
+                    }
+                }
+                super.addHeader(name, value);
+            }
+        };
+
+        chain.doFilter(request, responseWrapper);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 How to Fix It
 The easiest fix is to update your cookie configuration so that your session (or Okta) cookie is explicitly set with:
 
