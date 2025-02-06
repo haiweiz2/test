@@ -1,3 +1,54 @@
+How to Fix It
+The easiest fix is to update your cookie configuration so that your session (or Okta) cookie is explicitly set with:
+
+SameSite=None (so it is sent even when the browser is doing a cross-site redirect), and
+Secure flag set (since SameSite=None requires that the cookie is only sent over HTTPS)
+If you’re using Spring Boot / Spring Security and managing session cookies with a CookieSerializer (or similar), you can define a bean like this:
+
+import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CookieConfig {
+
+    @Bean
+    public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
+        // This will set SameSite=None for all cookies so they work with cross-site redirection
+        return CookieSameSiteSupplier.ofNone();
+    }
+}
+
+
+Or, if you’re using a DefaultCookieSerializer (for example, with Spring Session), you might do:
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
+
+@Configuration
+public class CookieConfig {
+
+    @Bean
+    public CookieSerializer cookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        // Set SameSite to "None" so the cookie is sent on cross-site requests
+        serializer.setSameSite("None");
+        // Must be set when using SameSite=None
+        serializer.setUseSecureCookie(true);
+        return serializer;
+    }
+}
+
+
+
+
+
+
+
+
+
 @Configuration
 public class SecurityConfig {
 
