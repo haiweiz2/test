@@ -1,4 +1,42 @@
 
+   // Create a wrapped request that overrides the scheme to "https"
+        HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
+
+            @Override
+            public String getScheme() {
+                // Return HTTPS scheme
+                return "https";
+            }
+
+            @Override
+            public int getServerPort() {
+                // Return the standard HTTPS port
+                return 443;
+            }
+
+            @Override
+            public StringBuffer getRequestURL() {
+                // Build the request URL using the overridden scheme and port
+                StringBuffer url = new StringBuffer();
+                url.append(getScheme()) // will return "https"
+                   .append("://")
+                   .append(getServerName());
+
+                // Append the port only if it's not the default for HTTPS
+                if (getServerPort() != 443) {
+                    url.append(":").append(getServerPort());
+                }
+                url.append(getRequestURI());
+                return url;
+            }
+        };
+
+
+
+
+
+
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
