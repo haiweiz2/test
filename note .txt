@@ -1,4 +1,92 @@
 
+
+To detect the domain at startup using the server’s hostname and activate the corresponding Spring profile in a pure Spring application (without Spring Boot), follow these steps:
+
+Step 1: Create a ProfileInitializer Class
+Implement ApplicationContextInitializer to set the active profile based on the hostname before the Spring context loads.
+
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+public class ProfileInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
+        String hostname = getHostname();
+        String profile = resolveProfileFromHostname(hostname);
+        
+        // Set the active profile
+        applicationContext.getEnvironment().setActiveProfiles(profile);
+    }
+
+    private String getHostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("Failed to detect hostname", e);
+        }
+    }
+
+    private String resolveProfileFromHostname(String hostname) {
+        if (hostname.contains("dev")) return "dev";
+        else if (hostname.contains("qa")) return "qa";
+        else if (hostname.contains("prod")) return "prod";
+        else return "default";
+    }
+}
+
+
+
+Step 2: Configure the Initializer in web.xml
+If your application uses web.xml, register the ProfileInitializer in the servlet context.
+
+xml
+Copy
+<!-- web.xml -->
+<context-param>
+    <param-name>contextInitializerClasses</param-name>
+    <param-value>com.example.ProfileInitializer</param-value>
+</context-param>
+
+Step 3: Programmatic Setup (No web.xml)
+For Java-based configuration (e.g., WebApplicationInitializer), register the initializer programmatically.
+
+
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
+public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        // Register the ProfileInitializer
+        servletContext.addListener(new ProfileInitializer());
+        super.onStartup(servletContext);
+    }
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class<?>[]{AppConfig.class};
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return null;
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/"};
+    }
+}
+
+
+
+
    // Create a wrapped request that overrides the scheme to "https"
         HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
 
