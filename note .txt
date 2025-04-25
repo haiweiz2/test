@@ -3,18 +3,6 @@
 
 
 
-API key:
-IV7NIXST3JVUJYQT
-
-API secret:
-1V8kG3jr3J+MUqlAsXXIVNddxJ+ywyNrF/NQ+mKKxYLKOp6z5O/EBI7aXJaf6Yuh
-
-Resource:
-lkc-6x85x8
-
-Bootstrap server:
-pkc-921jm.us-east-2.aws.confluent.cloud:9092
-
 
 
 
