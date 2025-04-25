@@ -1,5 +1,25 @@
 
 
+
+
+
+API key:
+IV7NIXST3JVUJYQT
+
+API secret:
+1V8kG3jr3J+MUqlAsXXIVNddxJ+ywyNrF/NQ+mKKxYLKOp6z5O/EBI7aXJaf6Yuh
+
+Resource:
+lkc-6x85x8
+
+Bootstrap server:
+pkc-921jm.us-east-2.aws.confluent.cloud:9092
+
+
+
+
+
+
 To detect the domain at startup using the server’s hostname and activate the corresponding Spring profile in a pure Spring application (without Spring Boot), follow these steps:
 
 Step 1: Create a ProfileInitializer Class
